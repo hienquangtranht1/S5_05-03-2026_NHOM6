@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Lịch sử đơn hàng</title>
+</head>
+<body>
+    <section layout:fragment="content" class="container mt-5">
+        <h2 class="mb-4 text-center">Lịch sử đơn hàng của bạn</h2>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Mã Đơn</th>
+                            <th>Tổng Tiền</th>
+                            <th>Phương Thức</th>
+                            <th>Trạng Thái</th>
+                            <th class="text-center">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(orders)}">
+                            <td colspan="5" class="text-center py-4 text-muted">Trống.</td>
+                        </tr>
+
+                        <tr th:each="order : ${orders}">
+                            <td class="fw-bold" th:text="'#' + ${order.id}"></td>
+                            <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></td>
+                            <td th:text="${order.paymentMethod}"></td>
+
+                            <td>
+                                <span th:if="${#strings.trim(order.status) == 'UNPAID'}" class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                <span th:if="${#strings.trim(order.status) == 'PAID'}" class="badge bg-success">Đã thanh toán</span>
+                                <span th:if="${#strings.trim(order.status) == 'DELIVERED'}" class="badge bg-primary">Đã giao</span>
+                                <span th:if="${#strings.trim(order.status) == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
+                            </td>
+
+                            <td class="text-center">
+                                <a th:if="${#strings.trim(order.status) == 'UNPAID'}" 
+                                   th:href="@{/cart/repay/{id}(id=${order.id})}" 
+                                   class="btn btn-sm btn-success me-2">Thanh toán ngay</a>
+
+                                <form th:if="${#strings.trim(order.status) == 'UNPAID'}" 
+                                      th:action="@{/user/orders/cancel/{id}(id=${order.id})}" 
+                                      method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                            onclick="return confirm('Bạn chắc chắn muốn XÓA đơn này?');">Hủy đơn</button>
+                                </form>
+
+                                <button th:if="${#strings.trim(order.status) != 'UNPAID'}" 
+                                        class="btn btn-sm btn-secondary" disabled>Đã hoàn tất / Hủy</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mt-3 text-center"><a href="/" class="btn btn-primary">Tiếp tục mua sắm</a></div>
+    </section>
+</body>
+</html>
