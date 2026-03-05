@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<head><title>Thanh Toán</title></head>
+<body>
+<section layout:fragment="content" class="container mt-4">
+    <h2 class="text-center mb-4">Xác Nhận Đơn Hàng</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6 card p-4 shadow-sm">
+            <h4 class="text-center text-danger fw-bold mb-3"
+                th:text="'Tổng thanh toán: ' + ${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 2, 'POINT')} + ' VNĐ'">
+            </h4>
+            <form th:action="@{/cart/checkout}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Địa chỉ:</label>
+                    <input type="text" name="address" class="form-control" required placeholder="Số nhà, đường...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Điện thoại:</label>
+                    <input type="text" name="phone" class="form-control" required placeholder="09xxxx...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Phương thức thanh toán:</label>
+                    <select name="paymentMethod" class="form-select">
+                        <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                        <option value="VNPAY">Thanh toán Online (VNPay)</option>
+                    </select>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <a href="/cart" class="btn btn-secondary me-2">Quay lại</a>
+                    <button type="submit" class="btn btn-success px-4">Đặt Hàng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+</body>
+</html>

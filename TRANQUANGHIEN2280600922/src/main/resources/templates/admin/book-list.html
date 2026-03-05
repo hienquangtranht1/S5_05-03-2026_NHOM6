@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout}">
+<head>
+    <title>Quản Lý Sách (Admin)</title>
+    <style>
+        .table-img {
+            width: 60px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+<section layout:fragment="content" class="container mt-4 mb-5">
+
+    <div class="rounded-3 p-4 mb-4 text-dark bg-warning bg-gradient d-flex justify-content-between align-items-center shadow-sm">
+        <div>
+            <h1 class="display-6 fw-bold">Trang Quản Trị</h1>
+            <p class="lead mb-0">Quản lý kho hàng và sản phẩm.</p>
+        </div>
+        <i class="bi bi-gear-fill fs-1 opacity-50"></i>
+    </div>
+
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-6">
+                    <form th:action="@{/books/management}" method="get">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                            <input type="text" name="keyword" class="form-control border-start-0" 
+                                   placeholder="Tìm kiếm sách..." th:value="${keyword}">
+                            <button class="btn btn-dark" type="submit">Tìm</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/books/add" class="btn btn-success fw-bold shadow-sm">
+                        <i class="bi bi-plus-circle"></i> Thêm Sách Mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive rounded-3">
+                <table class="table table-hover table-striped align-middle mb-0">
+                    <thead class="bg-dark text-white">
+                        <tr>
+                            <th class="py-3 ps-3">ID</th>
+                            <th class="py-3">Hình Ảnh</th>
+                            <th class="py-3">Tên Sách</th>
+                            <th class="py-3">Danh Mục</th>
+                            <th class="py-3 text-center">Số Lượng</th> <th class="py-3 text-end">Giá Tiền</th>
+                            <th class="py-3 text-center">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="book : ${books}">
+                            <td class="ps-3 fw-bold text-muted" th:text="${book.id}"></td>
+                            
+                            <td>
+                                <img th:src="${book.image != null ? '/images/' + book.image : 'https://placehold.co/60x80?text=No+Img'}" 
+                                     class="table-img" alt="Book Cover">
+                            </td>
+                            
+                            <td class="fw-bold text-primary" th:text="${book.title}"></td>
+                            <td><span class="badge bg-secondary" th:text="${book.category.name}"></span></td>
+                            
+                            <td class="text-center">
+                                <span th:if="${book.quantity > 10}" class="badge bg-success" th:text="${book.quantity}"></span>
+                                <span th:if="${book.quantity > 0 && book.quantity <= 10}" class="badge bg-warning text-dark" th:text="${book.quantity}"></span>
+                                <span th:if="${book.quantity <= 0}" class="badge bg-danger">Hết hàng</span>
+                            </td>
+                            
+                            <td class="text-end fw-bold text-danger" 
+                                th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                            </td>
+                            
+                            <td class="text-center">
+                                <a th:href="@{/books/edit/{id}(id=${book.id})}" class="btn btn-warning btn-sm me-1" title="Sửa">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a th:href="@{/books/delete/{id}(id=${book.id})}" 
+                                   class="btn btn-danger btn-sm" 
+                                   onclick="return confirm('Xóa sách này?')" title="Xóa">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

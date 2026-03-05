@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Giỏ Hàng Của Bạn</title>
+</head>
+<body>
+<section layout:fragment="content" class="container mt-4 mb-5">
+    <h2 class="mb-4 text-center fw-bold text-uppercase"><i class="bi bi-cart3"></i> Giỏ Hàng</h2>
+
+    <div th:if="${cart == null or cart.cartItems.isEmpty()}" class="text-center py-5 bg-light rounded shadow-sm">
+        <i class="bi bi-basket display-1 text-muted opacity-25"></i>
+        <h4 class="mt-3 text-muted">Giỏ hàng của bạn đang trống</h4>
+        <a href="/books" class="btn btn-primary px-4 py-2 mt-3">Quay lại cửa hàng</a>
+    </div>
+
+    <div th:unless="${cart == null or cart.cartItems.isEmpty()}">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-primary text-white">
+                            <tr>
+                                <th class="py-3 ps-4">Sản phẩm</th>
+                                <th class="py-3 text-center">Đơn giá</th>
+                                <th class="py-3 text-center" style="width: 180px;">Số lượng</th>
+                                <th class="py-3 text-end pe-4">Thành tiền</th>
+                                <th class="py-3 text-center">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${cart.cartItems}">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <a th:href="@{/books/detail/{id}(id=${item.bookId})}">
+                                            <img th:src="${item.image != null ? '/images/' + item.image : 'https://placehold.co/50x75'}" 
+                                                 style="width: 60px; height: 80px; object-fit: cover;" 
+                                                 class="rounded border me-3" alt="Book Img">
+                                        </a>
+                                        <div>
+                                            <a th:href="@{/books/detail/{id}(id=${item.bookId})}" 
+                                               class="fw-bold text-decoration-none text-dark" th:text="${item.bookName}"></a>
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <span class="text-muted" th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center align-items-center gap-2">
+                                        <input type="number" min="1" 
+                                               th:max="${item.maxQuantity != null and item.maxQuantity > 0 ? item.maxQuantity : 999}"
+                                               th:data-id="${item.bookId}"
+                                               th:data-price="${item.price}"
+                                               th:data-max="${item.maxQuantity != null and item.maxQuantity > 0 ? item.maxQuantity : 999}"
+                                               class="form-control text-center quantity-input fw-bold" 
+                                               th:value="${item.quantity}" style="width: 70px;">
+                                        <small class="text-muted" th:text="'/ ' + ${item.maxQuantity}"></small>
+                                    </div>
+                                </td>
+                                
+                                <td class="text-end fw-bold text-danger pe-4">
+                                    <span class="line-total" th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <a th:href="@{/cart/removeFromCart/{id}(id=${item.bookId})}" 
+                                       class="btn btn-outline-danger btn-sm border-0"
+                                       onclick="return confirm('Xóa sản phẩm này?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <a href="/books" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-left"></i> Tiếp tục mua sắm</a>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Tổng cộng:</h5>
+                            <h3 id="grand-total" class="fw-bold text-danger mb-0" 
+                                th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></h3>
+                        </div>
+                        <div class="d-grid">
+                            <a href="/cart/checkout" class="btn btn-success btn-lg fw-bold">Thanh Toán</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Hàm định dạng tiền tệ VNĐ
+    function formatCurrency(amount) {
+        if (!amount) amount = 0;
+        return new Intl.NumberFormat('vi-VN', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(Math.round(amount)) + ' đ';
+    }
+
+    $(document).ready(function() {
+        console.log("✓ Document ready - Cart JS loaded");
+        
+        // Kiểm tra có bao nhiêu input
+        let inputCount = $('.quantity-input').length;
+        console.log("Found " + inputCount + " quantity inputs");
+
+        let debounceTimer;
+
+        // Sự kiện khi user thay đổi giá trị (input hoặc change)
+        $('.quantity-input').on('input change', function() {
+            console.log("Event triggered!");
+
+            
+            let input = $(this);
+            let quantity = parseInt(input.val());
+            let maxStock = parseInt(input.attr('data-max'));
+            let price = parseFloat(input.attr('data-price'));
+            let bookId = input.attr('data-id');
+            let row = input.closest('tr');
+
+            console.log("Quantity:", quantity, "| Max:", maxStock, "| Price:", price, "| BookId:", bookId);
+
+            // 1. VALIDATE - Kiểm tra số lượng hợp lệ
+            if (isNaN(quantity) || quantity < 1) {
+                quantity = 1;
+                input.val(1);
+                console.log("Reset quantity to 1");
+            }
+            if (quantity > maxStock) {
+                alert("Kho chỉ còn " + maxStock + " sản phẩm!");
+                quantity = maxStock;
+                input.val(maxStock);
+                console.log("Quantity exceed max, reset to " + maxStock);
+            }
+
+            // 2. UPDATE UI - Cập nhật thành tiền dòng này NGAY LẬP TỨC
+            let lineTotal = price * quantity;
+            console.log("Line total:", lineTotal, "= price(" + price + ") * quantity(" + quantity + ")");
+            row.find('.line-total').text(formatCurrency(lineTotal));
+
+            // 3. UPDATE TỔNG TIỀN - Tính lại tổng cộng
+            let grandTotal = 0;
+            $('.quantity-input').each(function() {
+                let q = parseInt($(this).val()) || 0;
+                let p = parseFloat($(this).attr('data-price')) || 0;
+                console.log("Item: q=" + q + ", p=" + p + ", sub=" + (q*p));
+                grandTotal += (q * p);
+            });
+            console.log("Grand total:", grandTotal);
+            $('#grand-total').text(formatCurrency(grandTotal));
+
+            // 4. GỬI AJAX - Lưu lại trên Server (với Debounce 500ms)
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function() {
+                if (quantity >= 1 && quantity <= maxStock) {
+                    console.log("Sending AJAX to /cart/updateCart/" + bookId + "/" + quantity);
+                    $.ajax({
+                        url: '/cart/updateCart/' + bookId + '/' + quantity,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            console.log("✓ AJAX Response:", response);
+                            if (response.success) {
+                                console.log("✓ Cập nhật giỏ hàng thành công!");
+                            } else {
+                                alert("❌ " + response.message);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("✗ AJAX Error:", error, xhr.status, xhr.responseText);
+                            alert("❌ Lỗi cập nhật giỏ hàng!");
+                        }
+                    });
+                }
+            }, 500); // Debounce 500ms
+        });
+
+        // Khi blur (rời khỏi ô input), validate lại
+        $('.quantity-input').on('blur', function() {
+            let val = parseInt($(this).val());
+            if (isNaN(val) || val < 1) {
+                $(this).val(1);
+                $(this).trigger('change');
+            }
+        });
+    });
+</script>
+</body>
+</html>

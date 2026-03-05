@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Thêm Sách Mới</title>
+</head>
+<body>
+<section layout:fragment="content" class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary bg-gradient text-white py-3">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-plus-circle"></i> Thêm Sách Mới</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/books/add}" th:object="${book}" method="post" enctype="multipart/form-data">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên Sách <span class="text-danger">*</span></label>
+                            <input type="text" th:field="*{title}" class="form-control" placeholder="Nhập tên sách..." 
+                                   th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tác Giả <span class="text-danger">*</span></label>
+                            <input type="text" th:field="*{author}" class="form-control" placeholder="Nhập tên tác giả..."
+                                   th:classappend="${#fields.hasErrors('author')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('author')}" th:errors="*{author}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Danh Mục <span class="text-danger">*</span></label>
+                            <select th:field="*{category.id}" class="form-select" th:classappend="${#fields.hasErrors('category')} ? 'is-invalid'">
+                                <option value="">-- Chọn danh mục --</option>
+                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Giá Tiền (VNĐ)</label>
+                                <div class="input-group">
+                                    <input type="number" th:field="*{price}" class="form-control" min="0" step="1000" placeholder="0">
+                                    <span class="input-group-text">đ</span>
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Số Lượng</label>
+                                <input type="number" th:field="*{quantity}" class="form-control" min="1" value="1">
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Hình Ảnh Bìa</label>
+                            <input type="file" name="imageFile" class="form-control" accept="image/*">
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="/books" class="btn btn-secondary">
+                                <i class="bi bi-x-lg"></i> Hủy Bỏ
+                            </a>
+                            <button type="submit" class="btn btn-primary fw-bold px-4">
+                                <i class="bi bi-check-lg"></i> Lưu Sách
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

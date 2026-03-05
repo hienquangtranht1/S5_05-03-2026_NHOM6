@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Trang Chủ - Nhà Sách Hutech</title>
+    <style>
+        .book-card {
+            transition: transform 0.2s;
+            height: 100%;
+            border: none;
+            position: relative;
+        }
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+        .book-img {
+            height: 250px;
+            object-fit: cover;
+            width: 100%;
+            border-bottom: 1px solid #eee;
+        }
+        /* CSS cho trạng thái Hết hàng */
+        .out-of-stock-card .book-img {
+            filter: grayscale(100%);
+            opacity: 0.7;
+        }
+        .sold-out-overlay {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        .discount-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 10;
+        }
+        .filter-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            position: sticky;
+            top: 20px;
+            z-index: 90;
+        }
+        .price-text {
+            color: #d63031;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        /* Style cho nhãn thể loại */
+        .category-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+<section layout:fragment="content" class="container mt-4 mb-5">
+    
+    <div class="rounded-3 p-4 mb-4 text-white bg-primary bg-gradient d-flex justify-content-between align-items-center shadow-sm">
+        <div>
+            <h1 class="display-6 fw-bold">Siêu Sale Mùa Tựu Trường</h1>
+            <p class="lead mb-0">Sách hay, giá tốt, giao hàng tận nơi.</p>
+        </div>
+        <i class="bi bi-book-half fs-1 opacity-50"></i>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="filter-box shadow-sm">
+                <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-funnel-fill"></i> Bộ Lọc</h5>
+                <form action="/books" method="get">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted small">Từ khóa</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="keyword" class="form-control border-start-0" 
+                                   th:value="${keyword}" placeholder="Tên sách, tác giả...">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted small">Danh mục</label>
+                        <select name="categoryId" class="form-select">
+                            <option value="">Tất cả thể loại</option>
+                            <option th:each="cat : ${categories}" 
+                                    th:value="${cat.id}" 
+                                    th:text="${cat.name}"
+                                    th:selected="${cat.id == categoryId}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted small">Khoảng giá</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="minPrice" class="form-control form-control-sm" placeholder="Min" th:value="${minPrice}">
+                            <span>-</span>
+                            <input type="number" name="maxPrice" class="form-control form-control-sm" placeholder="Max" th:value="${maxPrice}">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 fw-bold mb-2 shadow-sm">
+                        <i class="bi bi-check2-circle"></i> Áp Dụng
+                    </button>
+                    <a href="/books" class="btn btn-outline-secondary w-100 btn-sm">Xóa bộ lọc</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-dark"><i class="bi bi-grid-fill text-primary"></i> Sách Nổi Bật</h4>
+            </div>
+
+            <div th:if="${books.isEmpty()}" class="text-center mt-5 py-5 bg-light rounded-3 shadow-sm">
+                <i class="bi bi-search display-1 text-muted opacity-25"></i>
+                <p class="mt-3 text-muted fw-bold">Không tìm thấy sách nào.</p>
+                <a href="/books" class="btn btn-primary btn-sm mt-2">Xem tất cả</a>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3 g-4" th:unless="${books.isEmpty()}">
+                <div class="col" th:each="book : ${books}">
+                    <div class="card book-card shadow-sm h-100" 
+                         th:classappend="${book.quantity <= 0 ? 'out-of-stock-card' : ''}">
+                        
+                        <div class="position-relative overflow-hidden">
+                            <a th:href="@{/books/detail/{id}(id=${book.id})}">
+                                <img th:src="${book.image != null ? '/images/' + book.image : 'https://placehold.co/400x600?text=No+Image'}" 
+                                     class="card-img-top book-img" 
+                                     th:alt="${book.title}">
+                            </a>
+
+                            <span th:if="${book.quantity > 0}" class="discount-badge">-20%</span>
+                            
+                            <div th:if="${book.quantity <= 0}" class="sold-out-overlay">
+                                HẾT HÀNG
+                            </div>
+                        </div>
+
+                        <div class="card-body d-flex flex-column">
+                            <div class="category-label text-primary">
+                                <i class="bi bi-tag-fill"></i>
+                                <span th:text="${book.category != null ? book.category.name : 'Chưa phân loại'}"></span>
+                            </div>
+
+                            <h6 class="card-title fw-bold text-truncate mb-1">
+                                <a th:href="@{/books/detail/{id}(id=${book.id})}" class="text-decoration-none text-dark" th:text="${book.title}"></a>
+                            </h6>
+                            <p class="card-text text-muted small mb-1">
+                                <i class="bi bi-person-fill"></i> <span th:text="${book.author}"></span>
+                            </p>
+
+                            <div class="mb-2 small">
+                                Tình trạng: 
+                                <span th:if="${book.quantity > 0}" class="text-success fw-bold">
+                                    Còn hàng (<span th:text="${book.quantity}"></span>)
+                                </span>
+                                <span th:if="${book.quantity <= 0}" class="text-danger fw-bold">
+                                    Hết hàng
+                                </span>
+                            </div>
+                            
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-end mb-3">
+                                    <span class="price-text" th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <a th:if="${book.quantity > 0}" 
+                                       th:href="@{/cart/add/{id}(id=${book.id})}" 
+                                       class="btn btn-outline-primary btn-sm fw-bold">
+                                         <i class="bi bi-cart-plus"></i> Thêm Giỏ Hàng
+                                    </a>
+
+                                    <button th:if="${book.quantity <= 0}" class="btn btn-secondary btn-sm" disabled>
+                                         <i class="bi bi-x-circle"></i> Tạm hết hàng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

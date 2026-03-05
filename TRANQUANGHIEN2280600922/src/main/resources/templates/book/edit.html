@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Chỉnh Sửa Sách</title>
+</head>
+<body>
+<section layout:fragment="content" class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning bg-gradient text-dark py-3">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-pencil-square"></i> Chỉnh Sửa Sách</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/books/edit}" th:object="${book}" method="post" enctype="multipart/form-data">
+                        
+                        <input type="hidden" th:field="*{id}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên Sách</label>
+                            <input type="text" th:field="*{title}" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tác Giả</label>
+                            <input type="text" th:field="*{author}" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Danh Mục</label>
+                            <select th:field="*{category.id}" class="form-select">
+                                <option th:each="cat : ${categories}" 
+                                        th:value="${cat.id}" 
+                                        th:text="${cat.name}"></option>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Giá Tiền</label>
+                                <input type="number" th:field="*{price}" class="form-control" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Số Lượng</label>
+                                <input type="number" th:field="*{quantity}" class="form-control" min="0">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Hình Ảnh</label>
+                            <div th:if="${book.image != null}" class="mb-2">
+                                <img th:src="@{'/images/' + ${book.image}}" width="100" class="rounded border">
+                            </div>
+                            <input type="file" name="imageFile" class="form-control" accept="image/*">
+                            <input type="hidden" th:field="*{image}"> 
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/books" class="btn btn-secondary">Hủy</a>
+                            <button type="submit" class="btn btn-warning fw-bold">Lưu Thay Đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>
